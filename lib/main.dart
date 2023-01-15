@@ -1,7 +1,27 @@
-import 'package:flutter/material.dart';
+import 'dart:io';
 
-void main() {
-  runApp(MyApp());
+import 'package:desktop_window/desktop_window.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_spotify_ui/data/data.dart';
+import 'package:flutter_spotify_ui/widgets/side_menu.dart';
+import 'package:provider/provider.dart';
+
+import 'models/current_track.dart';
+import 'screens/playlist_screen.dart';
+import 'widgets/widgets.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (!kIsWeb || (Platform.isMacOS || Platform.isLinux || Platform.isWindows)) {
+    await DesktopWindow.setMinWindowSize(const Size(600, 800));
+  }
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => CurrentTrackModel(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -16,7 +36,6 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF121212),
         backgroundColor: const Color(0xFF121212),
         primaryColor: Colors.black,
-        accentColor: const Color(0xFF1DB954),
         iconTheme: const IconThemeData().copyWith(color: Colors.white),
         fontFamily: 'Montserrat',
         textTheme: TextTheme(
@@ -42,8 +61,31 @@ class MyApp extends StatelessWidget {
             letterSpacing: 1.0,
           ),
         ),
+        colorScheme: ColorScheme.fromSwatch().copyWith(
+            secondary: const Color(0xFF1DB954), brightness: Brightness.dark),
       ),
-      home: Scaffold(),
+      home: Shell(),
+    );
+  }
+}
+
+class Shell extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(children: [
+        Expanded(
+          child: Row(
+            children: [
+              if (MediaQuery.of(context).size.width > 800) SideMenu(),
+              const Expanded(
+                child: PlaylistScreen(playlist: lofihiphopPlaylist),
+              ),
+            ],
+          ),
+        ),
+        CurrentTrack(),
+      ]),
     );
   }
 }
